@@ -1,0 +1,41 @@
+
+---
+interface Props {
+	Title: string;
+	Price: number;
+	Product_ID: string;
+}
+
+const { Title,Price,Product_ID } = Astro.props;
+---
+
+	<form method="POST">
+		<label for="title">Title</label>
+		<input required name="title" value={Title}>
+		<br />
+		<label for="price">Price</label>
+		<input required name="price" value={Price}>
+		<br />
+		<label for="productId">Product ID</label>
+		<input required name="productId" value={Product_ID}>
+        <button>Submit</button>
+	</form>
+
+<style>
+	form
+	{
+		background:bisque;
+		margin:auto;
+		width:60%;
+	}
+	label
+	{
+		font-weight:bold;
+		margin:5px;
+	}
+	input
+	{
+		font-weight:bold;
+		margin:5px;
+	}
+</style>

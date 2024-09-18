@@ -1,0 +1,17 @@
+---
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<form>
+    <slot />
+</form>
+<style>
+    form
+    {
+        background:bisque;
+    }
+</style>

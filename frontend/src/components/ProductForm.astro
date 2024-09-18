@@ -1,0 +1,100 @@
+
+---
+interface Props {
+	Title: string;
+	Price: number;
+	Product_ID: string;
+}
+
+const { Title,Price,Product_ID } = Astro.props;
+
+---
+
+	<form id="addProductForm">
+		<label for="title">Title</label>
+		<input required id="title" name="title" value={Title}>
+		<br />
+		<label for="price">Price</label>
+		<input required id="price" name="price" value={Price}>
+		<br />
+		<label for="productId">Product ID</label>
+		<input required id="productId" name="productId" value={Product_ID}>
+        <button>Submit</button>
+	</form>
+
+<style>
+	form
+	{
+		background:bisque;
+		margin:auto;
+		width:60%;
+	}
+	label
+	{
+		font-weight:bold;
+		margin:5px;
+	}
+	input
+	{
+		font-weight:bold;
+		margin:5px;
+	}
+</style>
+
+<script>
+    import {  isInputError } from "astro:actions";
+    import {actions} from "astro:actions"
+
+    function clearPreviousMessage(id: string) {
+    const messageElement = document.getElementById(id);
+    if (messageElement) {
+      messageElement.remove();
+    }
+  }
+
+  function addMessageElement(
+    message: string,
+    type: "error" | "success",
+    element: HTMLElement
+  ) {
+    const p = document.createElement("p");
+
+    p.id = "message";
+    p.className = `message ${type === "success" ? "text-teal-300" : "text-pink-300"} mt-2 px-2`;
+    p.innerText = message;
+    form.appendChild(p);
+    p.innerText = message;
+    element.appendChild(p);
+  }
+
+  function renderMessage(error: any, data: any, form: HTMLFormElement) {
+    if (error && isInputError(error)) {
+      const message = error.fields.email && error.fields.email[0];
+      addMessageElement(message || "", "error", form);
+    } else {
+      if (data?.strapiErrors) {
+        const message = data?.strapiErrors.message;
+        addMessageElement(message, "error", form);
+      } else {
+        const message = "Form submitted, thank you.";
+        addMessageElement(message, "success", form);
+      }
+    }
+  }
+
+    const form = document.getElementById("addProductForm") as HTMLFormElement;
+  
+    async function handleFormSubmit(e: Event) {
+      e.preventDefault();
+  
+      const formData = new FormData(form);
+      //alert(formData.get("title"))
+  
+      const { data, error } = await actions.addProduct({data:{title:""+formData.get("title")?.toString(),productId:Number(formData.get("productId")),price:Number(formData.get("price"))}});
+      //const { data, error } = await actions.addProduct({data:{title:"sas",productId:"213",price:4}});
+      renderMessage(error, data, form);
+
+    }
+  
+    form.addEventListener("submit", handleFormSubmit);
+  </script>

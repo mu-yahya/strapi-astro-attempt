@@ -1,0 +1,48 @@
+---
+import type { object, objectInputType } from 'astro:schema';
+import Layout from '../layouts/Layout.astro';
+import ProductCard from '../components/ProductCard.astro';
+
+const response = await fetch("http://localhost:1337/api/products");
+const products = await response.json().then(products=>products.data);
+//const products = responseJson.map((data: gotData)   => data.attributes);
+
+interface gotData
+{
+	id: number;
+	attributes: productData;
+}
+
+interface productData
+{
+	Title: string;
+	Product_ID: string;
+	Price: number;
+	createdAt: Date;
+	updatedAt: Date;
+	publishedAt: Date;
+}
+
+
+---
+<Layout title="Catalogue">
+	<main>
+		<h1>Catalogue</h1>
+		<!-- <Card product1 = {products[0]}></Card> -->
+		<div id="catalogue" class="container">
+			<div class="container-row">
+				<div class="container-col-sm-12">	
+					{products.map((product : any)=>(<ProductCard id={product.id} product1={product.attributes}></ProductCard>))}
+				</div>
+			</div>
+		</div>
+	</main>
+</Layout>
+<style>
+	#catalogue
+	{
+		background-color: darkkhaki;
+	}
+</style>
+
+

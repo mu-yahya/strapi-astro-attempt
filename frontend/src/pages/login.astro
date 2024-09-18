@@ -1,0 +1,234 @@
+---
+import Layout from '../layouts/Layout.astro';
+import LoginForm from '../components/LoginForm.astro';
+---
+<Layout title="Login">
+	<main>
+
+	</main>
+</Layout>
+
+<LoginForm  
+    identifier=""
+    password=""
+/>
+
+<style>
+	main {
+		margin: auto;
+		padding: 1rem;
+		width: 800px;
+		max-width: calc(100% - 2rem);
+		color: white;
+		font-size: 20px;
+		line-height: 1.6;
+	}
+	.astro-a {
+		position: absolute;
+		top: -32px;
+		left: 50%;
+		transform: translatex(-50%);
+		width: 220px;
+		height: auto;
+		z-index: -1;
+	}
+	h1 {
+		font-size: 4rem;
+		font-weight: 700;
+		line-height: 1;
+		text-align: center;
+		margin-bottom: 1em;
+	}
+	.text-gradient {
+		background-image: var(--accent-gradient);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-size: 400%;
+		background-position: 0%;
+	}
+	.instructions {
+		margin-bottom: 2rem;
+		border: 1px solid rgba(var(--accent-light), 25%);
+		background: linear-gradient(rgba(var(--accent-dark), 66%), rgba(var(--accent-dark), 33%));
+		padding: 1.5rem;
+		border-radius: 8px;
+	}
+	.instructions code {
+		font-size: 0.8em;
+		font-weight: bold;
+		background: rgba(var(--accent-light), 12%);
+		color: rgb(var(--accent-light));
+		border-radius: 4px;
+		padding: 0.3em 0.4em;
+	}
+	.instructions strong {
+		color: rgb(var(--accent-light));
+	}
+	.link-card-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(24ch, 1fr));
+		gap: 2rem;
+		padding: 0;
+	}
+</style>
+
+
+<script>
+
+            async function registerServiceWorker(tryOnce = false) {
+                if (!("serviceWorker" in navigator))
+                    throw new Error("serviceWorker not supported");
+
+                const url = new URL(`/serviceWorker.js`, location.toString()).toString();
+                //console.info('Registering worker');
+                const registration = await navigator.serviceWorker.register(
+                    url,
+                    {
+                        scope: "/",
+                    }
+                );
+
+                const registeredWorker =
+                    registration.active ||
+                    registration.waiting ||
+                    registration.installing;
+                //console.info('Registered worker:', registeredWorker);
+                if (registeredWorker?.scriptURL != url) {
+                    console.log(
+                        "[ServiceWorker] Old URL:",
+                        registeredWorker?.scriptURL || "none",
+                        "updating to:",
+                        url
+                    );
+                    await registration.update();
+                    //console.info('Updated worker');
+                }
+
+                //console.info('Waiting for ready worker');
+                let serviceReg = await navigator.serviceWorker.ready;
+                //console.info('Ready registration:', serviceReg);
+
+                if (!navigator.serviceWorker.controller) {
+                    //console.info('Worker isn’t controlling, re-register');
+                    try {
+                        const reg = await navigator.serviceWorker.getRegistration("/");
+                        await reg?.unregister();
+                        //console.info('Successfully unregistered, trying registration again');
+                        return registerServiceWorker();
+                    } catch (err) {
+                        console.error(
+                            `ServiceWorker failed to re-register after hard-refresh, reloading the page!`,
+                            err
+                        );
+                        return location.reload();
+                    }
+                }
+
+                let serviceWorker =
+                    serviceReg.active ||
+                    serviceReg.waiting ||
+                    serviceReg.installing;
+                if (!serviceWorker) {
+                    //console.info('No worker on registration, getting registration again');
+                    let serviceReg = await navigator.serviceWorker.getRegistration("/");
+                    if(serviceReg)
+                    {
+                        serviceWorker =
+                        serviceReg?.active ||
+                        serviceReg?.waiting ||
+                        serviceReg?.installing;
+                    }
+                }
+
+                if (!serviceWorker) {
+                    console.info('No worker on registration, waiting 50ms');
+                    //await sleep(50); // adjustable or skippable, have a play around
+                }
+
+                serviceWorker =
+                    serviceReg.active ||
+                    serviceReg.waiting ||
+                    serviceReg.installing;
+                if (!serviceWorker)
+                    throw new Error("after waiting on .ready, still no worker");
+
+                if (serviceWorker.state == "redundant") {
+                    //console.info('Worker is redundant, trying again');
+                    return registerServiceWorker();
+                }
+
+                if (serviceWorker.state != "activated") {
+                    //console.info('Worker IS controlling, but not active yet, waiting on event. state=', serviceWorker.state);
+                    try {
+                        // timeout is adjustable, but you do want one in case the statechange
+                        // doesn't fire / with the wrong state because it gets queued,
+                        // see ServiceWorker.onstatechange MDN docs.
+                        await timeout(
+                            100,
+                            new Promise((resolve) => {
+                                serviceWorker?.addEventListener(
+                                    "statechange",
+                                    (e: any) => {
+                                        //const target = e.target as ServiceWorker;
+                                        if (e.target.state == "activated")
+                                            resolve("");
+                                    }
+                                );
+                            })
+                        );
+                    } catch (err) {
+                        if (err instanceof TimeoutError) {
+                            if (serviceWorker.state.toString() !== "activated") {
+                                if (tryOnce) {
+                                    //console.info('Worker is still not active. state=', serviceWorker.state);
+                                    throw new Error(
+                                        "failed to activate service worker"
+                                    );
+                                } else {
+                                    //console.info('Worker is still not active, retrying once');
+                                    return registerServiceWorker(true);
+                                }
+                            }
+                        } else {
+                            // should be unreachable
+                            throw err;
+                        }
+                    }
+                }
+
+                //console.info('Worker is controlling and active, we’re good folks!');
+                return serviceWorker;
+            }
+
+            class TimeoutError extends Error {}
+
+            /**
+             * Run promise but reject after some timeout.
+             *
+             * @template T
+             * @param {number} ms Milliseconds until timing out
+             * @param {Promise<T>} promise Promise to run until timeout (note that it will keep running after timeout)
+             * @returns {Promise<T, Error>}
+             */
+            function timeout(ms:any, promise:any) {
+                return new Promise((resolve, reject) => {
+                    const timer = setTimeout(() => {
+                        reject(new TimeoutError());
+                    }, ms);
+
+                    promise.then(
+                        (result:any) => {
+                            clearTimeout(timer);
+                            resolve(result);
+                        },
+                        (error:any) => {
+                            clearTimeout(timer);
+                            reject(error);
+                        }
+                    );
+                });
+            }
+
+            registerServiceWorker();
+
+</script>
